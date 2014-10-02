@@ -95,8 +95,8 @@ static CGFloat const bfPaperCell_fadeConstant                    = 0.15f;
     
     self.layer.masksToBounds = YES;
     self.clipsToBounds = YES;
-
-//    self.textLabel.text = @"BFPaperTableViewCell";
+    
+    //    self.textLabel.text = @"BFPaperTableViewCell";
     self.textLabel.backgroundColor = [UIColor clearColor];
     
     self.maskLayer.frame = self.frame;
@@ -106,7 +106,7 @@ static CGFloat const bfPaperCell_fadeConstant                    = 0.15f;
     self.backgroundColorFadeLayer.frame = self.bounds;
     self.backgroundColorFadeLayer.backgroundColor = self.backgroundFadeColor.CGColor;
     [self.contentView.layer insertSublayer:self.backgroundColorFadeLayer atIndex:0];
-
+    
     
     UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:nil];
     tapGestureRecognizer.delegate = self;
@@ -117,22 +117,22 @@ static CGFloat const bfPaperCell_fadeConstant                    = 0.15f;
 
 #pragma Parent Overides
 /*- (void)setSelected:(BOOL)selected animated:(BOOL)animated
-{
-    [super setSelected:selected animated:animated];
-}
-
-- (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated
-{
-    [super setHighlighted:highlighted animated:animated];
-}*/
+ {
+ [super setSelected:selected animated:animated];
+ }
+ 
+ - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated
+ {
+ [super setHighlighted:highlighted animated:animated];
+ }*/
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     [super touchesBegan:touches withEvent:event];
-
+    
     self.letGo = NO;
     self.growthFinished = NO;
-
+    
     [self growTapCircle];
 }
 
@@ -147,12 +147,16 @@ static CGFloat const bfPaperCell_fadeConstant                    = 0.15f;
     }
     [self fadeTapCircleOut];
     [self fadeBGOutAndBringShadowBackToStart];
+    
+    if (self.delegate && [(id)self.delegate canPerformAction:@selector(cellTapped:) withSender:self]) {
+        [self.delegate cellTapped:self];
+    }
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
     [super touchesCancelled:touches withEvent:event];
-
+    
     self.letGo = YES;
     
     if (self.growthFinished) {
@@ -160,8 +164,8 @@ static CGFloat const bfPaperCell_fadeConstant                    = 0.15f;
     }
     [self fadeTapCircleOut];
     [self fadeBGOutAndBringShadowBackToStart];
+    
 }
-
 
 #pragma mark - Setters and Getters
 - (void)setUsesSmartColor:(BOOL)usesSmartColor
@@ -207,7 +211,7 @@ static CGFloat const bfPaperCell_fadeConstant                    = 0.15f;
 {
     //NSLog(@"expanding a tap circle");
     // Spawn a growing circle that "ripples" through the button:
-
+    
     // Set the fill color for the tap circle (self.animationLayer's fill color):
     if (!self.tapCircleColor) {
         self.tapCircleColor = self.usesSmartColor ? [self.textLabel.textColor colorWithAlphaComponent:bfPaperCell_tapFillConstant] : BFPAPERCELL__DUMB_TAP_FILL_COLOR;
@@ -319,7 +323,7 @@ static CGFloat const bfPaperCell_fadeConstant                    = 0.15f;
     removeFadeBackgroundDarker.toValue = [NSNumber numberWithFloat:0.f];
     removeFadeBackgroundDarker.fillMode = kCAFillModeForwards;
     removeFadeBackgroundDarker.removedOnCompletion = NO;
-        
+    
     [self.backgroundColorFadeLayer addAnimation:removeFadeBackgroundDarker forKey:@"removeBGShade"];
 }
 
@@ -371,25 +375,45 @@ static CGFloat const bfPaperCell_fadeConstant                    = 0.15f;
 {
     //NSLog(@"Fading away");
     
+    CALayer *tempAnimationLayer = [self.rippleAnimationQueue firstObject];
     if (self.rippleAnimationQueue.count > 0) {
-        CALayer *tempAnimationLayer = [self.rippleAnimationQueue firstObject];
         [self.rippleAnimationQueue removeObjectAtIndex:0];
-        
-        [self.deathRowForCircleLayers addObject:tempAnimationLayer];
-        
-        CABasicAnimation *fadeOut = [CABasicAnimation animationWithKeyPath:@"opacity"];
-        [fadeOut setValue:@"fadeCircleOut" forKey:@"id"];
-        fadeOut.delegate = self;
-        fadeOut.fromValue = [NSNumber numberWithFloat:tempAnimationLayer.opacity];
-        fadeOut.toValue = [NSNumber numberWithFloat:0.f];
-        fadeOut.duration = bfPaperCell_tapCircleGrowthDurationConstant;
-        fadeOut.fillMode = kCAFillModeForwards;
-        fadeOut.removedOnCompletion = NO;
-        
-        [tempAnimationLayer addAnimation:fadeOut forKey:@"opacityAnimation"];
     }
+    [self.deathRowForCircleLayers addObject:tempAnimationLayer];
+    
+    CABasicAnimation *fadeOut = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    [fadeOut setValue:@"fadeCircleOut" forKey:@"id"];
+    fadeOut.delegate = self;
+    fadeOut.fromValue = [NSNumber numberWithFloat:tempAnimationLayer.opacity];
+    fadeOut.toValue = [NSNumber numberWithFloat:0.f];
+    fadeOut.duration = bfPaperCell_tapCircleGrowthDurationConstant;
+    fadeOut.fillMode = kCAFillModeForwards;
+    fadeOut.removedOnCompletion = NO;
+    
+    [tempAnimationLayer addAnimation:fadeOut forKey:@"opacityAnimation"];
 }
-#pragma mark -
+//- (void)fadeTapCircleOut
+//{
+//    //NSLog(@"Fading away");
+//    
+//    if (self.rippleAnimationQueue.count > 0) {
+//        CALayer *tempAnimationLayer = [self.rippleAnimationQueue firstObject];
+//        [self.rippleAnimationQueue removeObjectAtIndex:0];
+//        
+//        [self.deathRowForCircleLayers addObject:tempAnimationLayer];
+//        
+//        CABasicAnimation *fadeOut = [CABasicAnimation animationWithKeyPath:@"opacity"];
+//        [fadeOut setValue:@"fadeCircleOut" forKey:@"id"];
+//        fadeOut.delegate = self;
+//        fadeOut.fromValue = [NSNumber numberWithFloat:tempAnimationLayer.opacity];
+//        fadeOut.toValue = [NSNumber numberWithFloat:0.f];
+//        fadeOut.duration = bfPaperCell_tapCircleGrowthDurationConstant;
+//        fadeOut.fillMode = kCAFillModeForwards;
+//        fadeOut.removedOnCompletion = NO;
+//        
+//        [tempAnimationLayer addAnimation:fadeOut forKey:@"opacityAnimation"];
+//    }
+//}
 
 
 @end

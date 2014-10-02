@@ -30,6 +30,8 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol BFPaperTableViewCellDelegate;
+
 // Nice circle diameter constants:
 static const CGFloat bfPaperTableViewCell_tapCircleDiameterMedium = 462.f;
 static const CGFloat bfPaperTableViewCell_tapCircleDiameterLarge = bfPaperTableViewCell_tapCircleDiameterMedium * 1.4f;
@@ -37,6 +39,9 @@ static const CGFloat bfPaperTableViewCell_tapCircleDiameterSmall = bfPaperTableV
 static const CGFloat bfPaperTableViewCell_tapCircleDiameterDefault = -1.f;
 
 @interface BFPaperTableViewCell : UITableViewCell
+
+@property (nonatomic, assign) id <BFPaperTableViewCellDelegate> delegate;
+
 /** A flag to set YES to use Smart Color, or NO to use a custom color scheme. While Smart Color is recommended, customization is cool too. */
 @property (nonatomic) BOOL usesSmartColor;
 
@@ -51,5 +56,11 @@ static const CGFloat bfPaperTableViewCell_tapCircleDiameterDefault = -1.f;
 
 /** A flag to set to YES to have the tap-circle ripple from point of touch. If this is set to NO, the tap-circle will always ripple from the center of the button. Default is YES. */
 @property BOOL rippleFromTapLocation;
+
+@end
+
+@protocol BFPaperTableViewCellDelegate <NSObject>
+
+- (void) cellTapped:(BFPaperTableViewCell*)cell;
 
 @end
